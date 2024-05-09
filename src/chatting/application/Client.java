@@ -10,6 +10,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -24,17 +25,18 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
-import java.net.*;
+import javax.swing.plaf.basic.BasicSplitPaneUI.BasicVerticalLayoutManager;
 
-public class Server implements ActionListener {
+public class Client implements ActionListener {
 	
-	JTextField text;
-	JPanel a1;
-	static Box vertical =  Box.createVerticalBox();
-	static JFrame f = new JFrame();
 	static DataOutputStream dout;
 	
-	Server() {
+	JTextField text;
+	static JPanel a1;
+	static JFrame f = new JFrame();
+	static Box vertical =  Box.createVerticalBox();
+	
+	Client() {
 		
 		f.setLayout(null);
 		
@@ -58,7 +60,7 @@ public class Server implements ActionListener {
 			}
 		});
 		
-		ImageIcon i4 = new ImageIcon(ClassLoader.getSystemResource("Icons/1.png"));
+		ImageIcon i4 = new ImageIcon(ClassLoader.getSystemResource("Icons/2.png"));
 		Image i5 = i4.getImage().getScaledInstance(50, 50, Image.SCALE_DEFAULT);
 		ImageIcon i6 = new ImageIcon(i5);
 		JLabel profile = new JLabel(i6);
@@ -86,7 +88,7 @@ public class Server implements ActionListener {
 		morevert.setBounds(420, 20, 10, 25);
 		p1.add(morevert);
 		
-		JLabel name = new JLabel("Santa");
+		JLabel name = new JLabel("Banta");
 		name.setBounds(110, 15, 100, 18);
 		name.setForeground(Color.WHITE);
 		name.setFont(new Font("SANS_SERIF", Font.BOLD, 18));
@@ -116,7 +118,7 @@ public class Server implements ActionListener {
 		f.add(send);
 		
 		f.setSize(450, 700);
-		f.setLocation(200, 50);
+		f.setLocation(800, 50);
 		f.getContentPane().setBackground(Color.WHITE);
 		send.setFont(new Font("SAN_SERIF", Font.PLAIN, 16));
 		f.setUndecorated(true);
@@ -125,7 +127,6 @@ public class Server implements ActionListener {
 	}
 	
 	public void actionPerformed(ActionEvent ae) {
-		
 		try {
 		String out = text.getText();
 				
@@ -177,25 +178,27 @@ public class Server implements ActionListener {
 	}
 
 	public static void main(String[] args) {
-		new Server();
+		new Client();
 		
 		try {
-			ServerSocket skt = new ServerSocket(777);
+			Socket s = new Socket("127.0.0.1", 777);
+			DataInputStream din = new DataInputStream(s.getInputStream());
+			dout = new DataOutputStream(s.getOutputStream());
+			
 			while(true) {
-				Socket s = skt.accept();
-				DataInputStream din = new DataInputStream(s.getInputStream());
-				dout = new DataOutputStream(s.getOutputStream());
+				a1.setLayout(new BorderLayout());
+				String msg = din.readUTF();
+				JPanel panel = formatLabel(msg);
 				
-				while(true) {
-					String msg = din.readUTF();
-					JPanel panel = formatLabel(msg);
-					
-					//received message
-					JPanel left = new JPanel(new BorderLayout());
-					left.add(panel, BorderLayout.LINE_START);
-					vertical.add(left);
-					f.validate();
-				}
+				//received message
+				JPanel left = new JPanel(new BorderLayout());
+				left.add(panel, BorderLayout.LINE_START);
+				vertical.add(left);
+				
+				vertical.add(Box.createVerticalStrut(15));
+				a1.add(vertical, BorderLayout.PAGE_START);
+				
+				f.validate();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
